@@ -174,16 +174,20 @@ const useProjectStore = create<ProjectState>((set, get) => ({
 
   deleteScene: (id) => {
     set((state) => {
-        if (state.currentProject) {
-            return {
-                currentProject: {
-                    ...state.currentProject,
-                    scenes: state.currentProject.scenes.filter((scene) => scene.id !== id),
-                    updatedAt: Date.now(),
-                },
-            };
-        }
-        return {};
+      if (state.currentProject) {
+        const updatedScenes = state.currentProject.scenes
+          .filter((scene) => scene.id !== id)
+          .map((scene, index) => ({ ...scene, order: index }));
+
+        return {
+          currentProject: {
+            ...state.currentProject,
+            scenes: updatedScenes,
+            updatedAt: Date.now(),
+          },
+        };
+      }
+      return {};
     });
     get().saveToLocalStorage();
   },
