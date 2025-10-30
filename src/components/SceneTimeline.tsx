@@ -3,17 +3,17 @@
 import useProjectStore from "@/store/useProjectStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SceneCard from "./SceneCard";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Button } from "./ui/button";
 
 const SceneTimeline = () => {
-    const { scenes, reorderScenes } = useProjectStore((state) => state.currentProject)
-        ? { scenes: state.currentProject.scenes, reorderScenes: useProjectStore.getState().reorderScenes }
-        : { scenes: [], reorderScenes: () => {} };
+    const { currentProject, reorderScenes, addScene, setActiveScene, activeSceneId } = useProjectStore();
+    const scenes = currentProject?.scenes ?? [];
 
-    const handleDragEnd = (event) => {
+    const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
-        if (active.id !== over.id) {
+        if (over && active.id !== over.id) {
             const oldIndex = scenes.findIndex((scene) => scene.id === active.id);
             const newIndex = scenes.findIndex((scene) => scene.id === over.id);
             reorderScenes(oldIndex, newIndex);
@@ -30,11 +30,17 @@ const SceneTimeline = () => {
                     <SortableContext items={scenes.map(scene => scene.id)} strategy={verticalListSortingStrategy}>
                         <div className="space-y-4">
                             {scenes.map((scene) => (
-                                <SceneCard key={scene.id} scene={scene} />
+                                <SceneCard
+                                    key={scene.id}
+                                    scene={scene}
+                                    isActive={scene.id === activeSceneId}
+                                    onSelect={() => setActiveScene(scene.id)}
+                                />
                             ))}
                         </div>
                     </SortableContext>
                 </DndContext>
+                <Button className="mt-4 w-full" variant="secondary" onClick={addScene}>Add Scene</Button>
             </CardContent>
         </Card>
     );
