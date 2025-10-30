@@ -10,11 +10,12 @@ import { CSS } from "@dnd-kit/utilities";
 
 interface SceneCardProps {
     scene: Scene;
+    isActive: boolean;
+    onSelect: () => void;
 }
 
-const SceneCard = ({ scene }: SceneCardProps) => {
-    const { setActiveScene, deleteScene, activeSceneId } = useProjectStore();
-    const isActive = scene.id === activeSceneId;
+const SceneCard = ({ scene, isActive, onSelect }: SceneCardProps) => {
+    const { deleteScene } = useProjectStore();
     const {
         attributes,
         listeners,
@@ -30,10 +31,10 @@ const SceneCard = ({ scene }: SceneCardProps) => {
 
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <Card className={cn({ "border-l-4 border-accent bg-muted": isActive })}>
+            <Card className={cn("cursor-pointer", { "border-l-4 border-accent bg-muted": isActive })} onClick={onSelect}>
                 <CardContent className="p-4 flex justify-between items-center">
-                    <p className="text-sm cursor-pointer" onClick={() => setActiveScene(scene.id)}>{scene.text}</p>
-                    <div className="flex gap-2">
+                    <p className="text-sm">{scene.text}</p>
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         <SceneEditor scene={scene}>
                             <Button variant="outline" size="sm">Edit</Button>
                         </SceneEditor>

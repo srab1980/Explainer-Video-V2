@@ -25,7 +25,7 @@ interface SceneEditorProps {
 }
 
 const SceneEditor = ({ scene, children }: SceneEditorProps) => {
-    const { isEditorOpen, openEditor, closeEditor, updateScene } = useProjectStore();
+    const { isEditorOpen, openEditor, closeEditor, updateScene, autoGenerateIllustrations } = useProjectStore();
     const [isAssetStoreOpen, setAssetStoreOpen] = useState(false);
     const [editingIllustrationId, setEditingIllustrationId] = useState<string | null>(null);
 
@@ -74,7 +74,24 @@ const SceneEditor = ({ scene, children }: SceneEditorProps) => {
                             </div>
                         </TabsContent>
                         <TabsContent value="layout">
-                            {/* Layout controls will be added in a future step */}
+                            <div className="space-y-4">
+                                <Select
+                                    onValueChange={(value: LayoutConfig['style']) => updateScene(scene.id, { layout: { ...scene.layout, style: value } })}
+                                    defaultValue={scene.layout?.style || 'horizontal-row'}
+                                >
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="horizontal-row">Horizontal Row</SelectItem>
+                                        <SelectItem value="vertical-stack">Vertical Stack</SelectItem>
+                                        <SelectItem value="grid-2x2">Grid 2x2</SelectItem>
+                                        <SelectItem value="grid-3x3">Grid 3x3</SelectItem>
+                                        <SelectItem value="centered-large">Centered Large</SelectItem>
+                                        <SelectItem value="side-by-side">Side by Side</SelectItem>
+                                        <SelectItem value="scattered">Scattered</SelectItem>
+                                        <SelectItem value="editorial">Editorial</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </TabsContent>
                         <TabsContent value="animation">
                             <Select onValueChange={(value: AnimationType) => updateScene(scene.id, { animation: value })} defaultValue={scene.animation}>
@@ -88,7 +105,10 @@ const SceneEditor = ({ scene, children }: SceneEditorProps) => {
                             </Select>
                         </TabsContent>
                         <TabsContent value="illustration">
-                            <Button onClick={() => { setEditingIllustrationId(null); setAssetStoreOpen(true); }}>Add Illustration</Button>
+                            <div className="flex gap-2">
+                                <Button onClick={() => { setEditingIllustrationId(null); setAssetStoreOpen(true); }}>Add Illustration</Button>
+                                <Button onClick={() => autoGenerateIllustrations(scene.id)}>Auto Generate</Button>
+                            </div>
                             <div className="space-y-4 mt-4">
                                 {scene.illustrations.map((ill) => (
                                     <div key={ill.id} className="flex items-center gap-4">

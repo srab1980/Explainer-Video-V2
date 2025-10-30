@@ -22,8 +22,15 @@ export default function Home() {
     return <div>Loading project...</div>;
   }
 
+  const { error, setError } = useProjectStore();
   return (
     <main className="flex flex-col h-screen bg-background text-foreground">
+        {error && (
+            <div className="absolute top-4 right-4 bg-destructive text-destructive-foreground p-4 rounded-md shadow-lg z-50">
+                <p>{error}</p>
+                <button onClick={() => setError(null)} className="absolute top-1 right-1 text-lg">&times;</button>
+            </div>
+        )}
       <header className="flex items-center justify-between p-4 border-b">
         <h1 className="text-2xl font-bold">StoryVid Storyboard Creator</h1>
         <AutoSaveIndicator />

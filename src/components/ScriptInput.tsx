@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import useProjectStore from "@/store/useProjectStore";
 
 const ScriptInput = () => {
-    // Get the whole project, then destructure the script.
-    const { currentProject, updateScript, generateScenes } = useProjectStore();
+    const { currentProject, updateScript, generateScenes, isGenerating } = useProjectStore();
     const script = currentProject?.script ?? "";
+    const wordCount = script.trim().split(/\s+/).filter(Boolean).length;
 
     return (
         <Card>
@@ -21,16 +21,24 @@ const ScriptInput = () => {
                     className="min-h-[400px]"
                     value={script}
                     onChange={(e) => updateScript(e.target.value)}
-                    // The button should be disabled when the AI is generating scenes.
-                    disabled={useProjectStore.getState().isGenerating}
+                    disabled={isGenerating}
                 />
-                <Button
-                    className="mt-4"
-                    onClick={() => generateScenes(script)}
-                    disabled={useProjectStore.getState().isGenerating}
-                >
-                    {useProjectStore.getState().isGenerating ? "Generating..." : "Generate Storyboard"}
-                </Button>
+                <div className="flex justify-between items-center mt-4">
+                    <p className={`text-sm ${wordCount > 500 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                        {wordCount} words
+                    </p>
+                    <Button
+                        onClick={() => generateScenes(script)}
+                        disabled={isGenerating || !script || script.trim().length < 10}
+                    >
+                        {isGenerating ? "Generating..." : "Generate Storyboard"}
+                    </Button>
+                </div>
+                {wordCount > 500 && (
+                    <p className="text-sm text-destructive mt-2">
+                        ⚠️ Script is long. Consider splitting into multiple videos for best results.
+                    </p>
+                )}
             </CardContent>
         </Card>
     );

@@ -8,6 +8,8 @@ interface ProjectState {
   isGenerating: boolean;
   isEditorOpen: boolean;
   autoSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  error: string | null;
+  setError: (error: string | null) => void;
   createProject: (title: string) => void;
   loadProject: (id: string) => void;
   updateScript: (script: string) => void;
@@ -29,6 +31,9 @@ const useProjectStore = create<ProjectState>((set, get) => ({
   isGenerating: false,
   isEditorOpen: false,
   autoSaveStatus: 'idle',
+  error: null,
+
+  setError: (error) => set({ error }),
 
   createProject: (title) => {
     const newProject: Project = {
@@ -120,6 +125,7 @@ const useProjectStore = create<ProjectState>((set, get) => ({
       get().saveToLocalStorage();
     } catch (error) {
       console.error("Error generating scenes:", error);
+      get().setError('Failed to generate scenes. Please try again.');
     } finally {
       set({ isGenerating: false });
     }
@@ -239,9 +245,52 @@ const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  autoGenerateIllustrations: (sceneId) => {
-    // AI illustration generation logic will be implemented here
-    console.log("Auto-generating illustrations for scene:", sceneId);
+  autoGenerateIllustrations: async (sceneId) => {
+    const { currentProject } = get();
+    const scene = currentProject?.scenes.find((s) => s.id === sceneId);
+
+    if (!scene || !scene.text || scene.keywords.length === 0) {
+      console.error("Scene text or keywords are missing.");
+      return;
+    }
+
+    set({ isGenerating: true });
+    try {
+      const response = await fetch('/api/generate-illustrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sceneText: scene.text, keywords: scene.keywords }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to generate illustrations');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        fullResponse += decoder.decode(value, { stream: true });
+      }
+
+      const { illustrations: rawIllustrations } = JSON.parse(fullResponse);
+
+      const newIllustrations = rawIllustrations.map((ill: any) => ({
+        ...ill,
+        id: uuidv4(),
+      }));
+
+      get().updateScene(sceneId, { illustrations: newIllustrations });
+
+    } catch (error) {
+      console.error("Error generating illustrations:", error);
+      get().setError('Failed to generate illustrations. Please try again.');
+    } finally {
+      set({ isGenerating: false });
+    }
   },
 }));
 
