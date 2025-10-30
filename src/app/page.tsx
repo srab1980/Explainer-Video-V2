@@ -8,7 +8,7 @@ import AutoSaveIndicator from "@/components/AutoSaveIndicator";
 import useProjectStore from "@/store/useProjectStore";
 
 export default function Home() {
-  const { currentProject, createProject } = useProjectStore();
+  const { currentProject, createProject, error, setError } = useProjectStore();
 
   useEffect(() => {
     // On mount, create a new project if one doesn't exist.
@@ -22,7 +22,6 @@ export default function Home() {
     return <div>Loading project...</div>;
   }
 
-  const { error, setError } = useProjectStore();
   return (
     <main className="flex flex-col h-screen bg-background text-foreground">
         {error && (
